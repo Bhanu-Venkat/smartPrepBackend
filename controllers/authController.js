@@ -44,11 +44,12 @@ const signup = async (req, res) => {
 
         // Create Students
         const studentUsers = [];
+        const mailContent = [];
         for (const student of students) {
             const studentUsername = await generateUniqueUsername(student.firstName, student.lastName, student.dateOfBirth);
             const studentPassword = generatePassword();
             const hashedStudentPassword = await hashPassword(studentPassword);
-
+            
             const studentUser = await User.create({
                 ...student,
                 username: studentUsername,
@@ -58,13 +59,17 @@ const signup = async (req, res) => {
             });
 
             studentUsers.push(studentUser);
+            mailContent.push({ name: student.firstName, username: studentUsername, password: studentPassword });
 
             // Send email to student
-            await sendEmail(student.emailId, 'Welcome to EduTech', `Hello ${student.firstName}, your username is ${studentUsername} and your password is ${studentPassword}`);
+            student.emailId && await sendEmail(student.emailId, 'Welcome to EduTech', `Hello ${student.firstName}, your username is ${studentUsername} and your password is ${studentPassword}`);
         }
 
+        var parentMailBody = `Hello ${parent.firstName}, your username is ${parentUsername} and your password is ${parentPassword}`;
+         var studentMailBody = mailContent.map((student) => `your kids username and password details:  ${student.name}'s username is ${student.username} and your password is ${student.password}`).join('\n');
+
         // Send email to parent
-        await sendEmail(parent.emailId, 'Welcome to EduTech', `Hello ${parent.firstName}, your username is ${parentUsername} and your password is ${parentPassword}`);
+        await sendEmail(parent.emailId, 'Welcome to EduTech' , parentMailBody+'\n'+studentMailBody);
 
         res.status(201).json({ message: 'Users created successfully', parent: parentUser, students: studentUsers });
     } catch (error) {
