@@ -82,9 +82,8 @@ const generateUniqueUsername = async (firstName, lastName, dateOfBirth) => {
     let baseUsername = `${firstName}${lastName}`.toLowerCase();
     let username = baseUsername;
     let count = 1;
-
     while (await User.findOne({ username })) {
-        username = dateOfBirth ? `${baseUsername}${dateOfBirth.getFullYear()}` : `${baseUsername}${count}`;
+        username = dateOfBirth ? `${baseUsername}${new Date(dateOfBirth).getFullYear()}` : `${baseUsername}${count}`;
         count++;
     }
 
