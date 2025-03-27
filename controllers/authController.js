@@ -31,6 +31,16 @@ const signup = async (req, res) => {
 
     try {
         // Create Parent
+        const isParentExist = await checkUserExistance(parent.emailId);
+        const isStudentsExists = await Promise.all(students.map(async (student) => {
+            if(student.emailId){
+                return await checkUserExistance(student.emailId);
+            }else{
+                return false
+            }}));
+        if(isParentExist || isStudentsExists.includes(true)){
+            return res.status(400).json({ message: 'Parent or student already exists' });
+        }
         const parentUsername = await generateUniqueUsername(parent.firstName, parent.lastName, null);
         const parentPassword = generatePassword();
         const hashedParentPassword = await hashPassword(parentPassword);
@@ -77,6 +87,16 @@ const signup = async (req, res) => {
         res.status(500).json({ message: 'Error creating users', error: error.message });
     }
 };
+
+const checkUserExistance = async (emailId) => {
+    const user = await User.findOne({ emailId });
+    if(user){
+        return true;
+    }else{
+        return false;
+    }
+        
+}
 
 const generateUniqueUsername = async (firstName, lastName, dateOfBirth) => {
     let baseUsername = `${firstName}${lastName}`.toLowerCase();
