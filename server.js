@@ -9,6 +9,8 @@ const userRoutes = require('./routes/userRoutes');
 const PORT = process.env.PORT || 3000;
 const verifyJWT = require('./utils/authMiddleware');
 const cors = require('cors');
+const assessmentHistoryRoutes = require('./routes/assessmentHistoryRoutes');
+const assessmentRoutes = require('./routes/assessmentRoutes');
 
 require('dotenv').config();
 
@@ -43,6 +45,8 @@ app.use('/api/affiliation', affiliationRoutes)
 app.use('/api/question', questionsRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/blueprint', blueprintRoutes)
+app.use('/api/assessmentHistory', assessmentHistoryRoutes);
+app.use('/api/assessment', assessmentRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

@@ -20,9 +20,13 @@ exports.bulkUpload = async (req, res) => {
       .on("data", (row) => {
         if (
           !row.question || !row.options || !row.correctOption ||
-          !row.difficulty_level || !row.typology_name ||
-          isNaN(row.weightage) || (row.isActive !== "true" && row.isActive !== "false")
+          !row.difficulty_level || !row.typology ||
+          isNaN(row.weightage) || (row.isActive.toUpperCase() !== "TRUE" && row.isActive.toUpperCase() !== "FALSE")
         ) {
+          console.error("Invalid row:", row);
+          console.log("the considtion check: ", !row.question || !row.options || !row.correctOption ||
+            !row.difficulty_level || !row.typology ||
+            isNaN(row.weightage) || (row.isActive !== "true" && row.isActive !== "false"))
           errors.push(row);
         } else {
           questions.push({
@@ -33,7 +37,8 @@ exports.bulkUpload = async (req, res) => {
             correctOption: row.correctOption,
             difficulty_level: row.difficulty_level,
             created_by: "admin", // Replace with dynamic user info
-            typology_name: row.typology_name,
+            typology: row.typology,
+            question_type: row.question_type,
             weightage: Number(row.weightage),
             isActive: row.isActive === "true",
           });
@@ -41,7 +46,8 @@ exports.bulkUpload = async (req, res) => {
       })
       .on("end", async () => {
         if (questions.length > 0) {
-          await Question.insertMany(questions);
+          var response = await Question.insertMany(questions);
+          console.log("Bulk upload response:", response);
         }
 
         res.status(200).json({

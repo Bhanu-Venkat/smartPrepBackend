@@ -1,4 +1,4 @@
-const Blueprint = require("../models/blueprint");
+const Blueprint = require("../models/bluePrint");
 const TestTemplate = require("../models/testTemplate");
 
 // Create a new blueprint

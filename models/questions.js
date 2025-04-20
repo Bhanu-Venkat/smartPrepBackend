@@ -9,7 +9,16 @@ const QuestionSchema = new mongoose.Schema(
     correctOption: { type: String, required: true },
     difficulty_level: { type: String, required: true },
     created_by: { type: String, required: true },
-    typology_name: { type: String, required: true },
+    typology: { 
+      type: String, 
+      enum: ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Hots', 'critical Thinking', 'creative thinking', 'create'],
+      required: true
+    },
+    question_type: { 
+      type: String,
+      enum: ['MCQ', 'Subjective', 'True/False', 'Fill in the Blanks', 'Match the Following', 'Assertion and Reasoning', 'Case Study', 'Passage Based'],
+      required: true
+    },
     weightage: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
     createdDate: { type: Date, default: Date.now },

@@ -64,6 +64,15 @@ const modifyAffiliation = async (req, res) => {
                     });
                 });
             }
+
+            if(add.standard?.length){
+                add.standard.forEach(standard => {
+                    affiliation.standard.push({
+                        grade: standard.grade,
+                        subjects: standard.subjects
+                    });
+                })
+            }
         }
 
         if (modify) {
@@ -105,6 +114,16 @@ const modifyAffiliation = async (req, res) => {
                                 subject.subjectName = subjectUpdate.modifiedSubjectName;
                             }
                         });
+                    });
+                });
+            }
+
+            if(modify.standard?.length){
+                modify.standard.forEach(standardUpdate => {
+                    affiliation.standard.forEach(grade => {
+                        if (grade.gradeId.toString() === standardUpdate.gradeId) {
+                            grade.grade = standardUpdate.modifiedGrade;
+                        }
                     });
                 });
             }
@@ -169,4 +188,27 @@ const getAffiliationById = async (req,res) => {
     }
 }
 
-module.exports = { createAffiliation, modifyAffiliation, getAffiliationById };
+const getGradeByAffiliation = async (req,res) => {
+    const { affiliation, grade } = req.params;
+
+    try {
+        // Fetch the data based on affiliation and grade
+        const data = await Affiliation.findOne({
+            affiliation: affiliation,
+            'standard.grade': grade
+        }, {
+            'standard.$': 1 // Project only the matching grade's data
+        });
+
+        if (!data) {
+            return res.status(404).json({ message: 'No data found for the specified grade and affiliation.' });
+        }
+
+        res.status(200).json({ data });
+    } catch (error) {
+        console.error('Error fetching grade data:', error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+}
+
+module.exports = { createAffiliation, modifyAffiliation, getAffiliationById, getGradeByAffiliation };

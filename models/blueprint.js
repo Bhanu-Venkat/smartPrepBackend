@@ -7,7 +7,7 @@ const MarksDistributionSchema = new mongoose.Schema({
 
 const BlueprintTypologySchema = new mongoose.Schema({
     _id: { type: String, required: true },
-    typologyId: { type: String, required: true },
+    typology: { type: String, required: true },
     marksDistribution: [MarksDistributionSchema]
 });
 
