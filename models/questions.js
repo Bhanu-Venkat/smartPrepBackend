@@ -9,6 +9,7 @@ const QuestionSchema = new mongoose.Schema(
     correctOption: { type: String, required: true },
     difficulty_level: { type: String, required: true },
     created_by: { type: String, required: true },
+    explanation: { type: String },
     typology: { 
       type: String, 
       enum: ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Hots', 'critical Thinking', 'creative thinking', 'create'],
