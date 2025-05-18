@@ -41,6 +41,7 @@ exports.bulkUpload = async (req, res) => {
             question_type: row.question_type,
             weightage: Number(row.weightage),
             isActive: row.isActive === "true",
+            explanation: row.explanation || "",
           });
         }
       })
