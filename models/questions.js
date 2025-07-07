@@ -12,7 +12,7 @@ const QuestionSchema = new mongoose.Schema(
     explanation: { type: String },
     typology: { 
       type: String, 
-      enum: ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Hots', 'critical Thinking', 'creative thinking', 'create'],
+      enum: ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Hots', 'Critical Thinking', 'Creative thinking', 'Create'],
       required: true
     },
     question_type: { 
