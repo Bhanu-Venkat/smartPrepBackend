@@ -72,14 +72,14 @@ const signup = async (req, res) => {
             mailContent.push({ name: student.firstName, username: studentUsername, password: studentPassword });
 
             // Send email to student
-            student.emailId && await sendEmail(student.emailId, 'Welcome to EduTech', `Hello ${student.firstName}, your username is ${studentUsername} and your password is ${studentPassword}`);
+            student.emailId && await sendEmail(student.emailId, '<p>Welcome to EduTech', `Hello ${student.firstName}, your username is ${studentUsername} and your password is ${studentPassword}</p>`);
         }
 
-        var parentMailBody = `Hello ${parent.firstName}, your username is ${parentUsername} and your password is ${parentPassword}`;
-         var studentMailBody = mailContent.map((student) => `your kids username and password details:  ${student.name}'s username is ${student.username} and your password is ${student.password}`).join('\n');
+        var parentMailBody = `<p>Hello ${parent.firstName}, your username is ${parentUsername} and your password is ${parentPassword}</p>`;
+         var studentMailBody = mailContent.map((student) => `<p>your kids username and password details:  ${student.name}'s username is ${student.username} and your password is ${student.password}</p>`).join('\n');
 
         // Send email to parent
-        await sendEmail(parent.emailId, 'Welcome to EduTech' , parentMailBody+'\n'+studentMailBody);
+        await sendEmail(parent.emailId, 'Welcome to EduTech' , `<p>${parentMailBody} ${studentMailBody}</p>`);
 
         res.status(201).json({ message: 'Users created successfully', parent: parentUser, students: studentUsers });
     } catch (error) {
@@ -130,7 +130,7 @@ const forgotPassword = async (req, res) => {
         await User.findByIdAndUpdate(user._id, { password: hashedOtp });
 
         // Send OTP via email
-        await sendEmail(emailId, 'Password Reset OTP', `Your OTP for password reset is: ${otp}`);
+        await sendEmail(emailId, 'Password Reset OTP', `<p>Your OTP for password reset is: ${otp}</p>`);
 
         res.status(200).json({ message: 'Please check your email for OTP' });
     } catch (error) {
@@ -158,7 +158,7 @@ const resetPassword = async (req, res) => {
         const hashedPassword = await hashPassword(newPassword);
         await User.findByIdAndUpdate(user._id, { password: hashedPassword });
 
-        await sendEmail(emailId, 'Successfully reset the password', `You have successfully reset the password.`);
+        await sendEmail(emailId, 'Successfully reset the password', `<p>You have successfully reset the password.</p>`);
 
         res.status(200).json({ message: 'Password reset successful' });
     } catch (error) {

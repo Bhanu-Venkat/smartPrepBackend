@@ -5,6 +5,7 @@ const { createAssessment, createAssessmentController } = require('../controllers
 const { default: mongoose, Types } = require('mongoose');
 const BluePrint = require('../models/bluePrint');
 const TestTemplate = require('../models/testTemplate');
+const sendEmail = require('../config/email');
 
 exports.createMultiChapterAssessment = async (req, res) => {
   try {
@@ -15,7 +16,8 @@ exports.createMultiChapterAssessment = async (req, res) => {
       chapters,
       createdBy,
       assignedTo,
-      isOffline = false
+      isOffline = false,
+      studentEmail = null,
     } = req.body;
 
     const now = new Date();
@@ -105,7 +107,15 @@ exports.createMultiChapterAssessment = async (req, res) => {
 
     // 6. Send Response
     if (createdBy.toString() !== assignedTo.toString()) {
-      
+      const frontendBaseURL = process.env.FRONTEND_URL || "http://localhost:5173";
+      const assessmentId = customAssessmentDoc._id;
+
+      const mailBody = `
+        <p>A new multi-chapter assessment has been created. Please check your dashboard for details or click the link below:</p>
+        <p><a href="${frontendBaseURL}/assessment?assessmentId=${assessmentId}" target="_blank">View Assessment</a></p>
+      `;
+
+      sendEmail(studentEmail,'New Multi-Chapter Assessment Created', mailBody)
       return res.status(201).json({
         message: "Assessment created successfully and notified to student."
       });
