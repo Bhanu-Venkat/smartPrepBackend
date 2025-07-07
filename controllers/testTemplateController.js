@@ -70,3 +70,15 @@ exports.deleteTestTemplate = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
+exports.getTestTemplateById = async (req,res) => {
+    try {
+        const testTemplate = await TestTemplate.findById(req.params.id);
+        if (!testTemplate) {
+            return res.status(404).json({ success: false, error: "Test template not found" });
+        }
+        res.status(200).json({ success: true, data: testTemplate });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+}

@@ -1,5 +1,5 @@
 const express = require('express');
-const { createUser, getUsers, getUserById, updateUser, deleteUser, createAdmin } = require('../controllers/userController');
+const { createUser, getUsers, getUserById, updateUser, deleteUser, createAdmin, getChildrenByParentId } = require('../controllers/userController');
 const verifyJWT = require('../utils/authMiddleware');
 
 const router = express.Router();
@@ -14,5 +14,7 @@ router.get('/:id', getUserById);        // Get user by ID
 router.put('/:id', updateUser);         // Update user by ID
 router.delete('/:id', deleteUser);      // Delete user by ID
 router.post('/createAdmin', createAdmin); // Create an admin user
+// GET /getChildren/:parentID
+router.get('/getChildren/:parentID', getChildrenByParentId);
 
 module.exports = router;

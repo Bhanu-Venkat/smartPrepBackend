@@ -57,10 +57,12 @@ const modifyAffiliation = async (req, res) => {
             if (add.subject?.length) {
                 add.subject.forEach(subject => {
                     affiliation.standard.forEach(grade => {
-                        grade.subjects.push({
-                            subjectName: subject.subjectName,
-                            chapters: subject.chapters || []
-                        });
+                        if( grade.gradeId.toString() === subject.gradeId) {
+                            grade.subjects.push({
+                                subjectName: subject.subjectName,
+                                chapters: subject.chapters || []
+                            });
+                        }
                     });
                 });
             }

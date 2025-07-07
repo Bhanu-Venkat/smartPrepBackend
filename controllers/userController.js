@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose');
 const User = require('../models/user');
 const { hashPassword } = require('../utils/passwordUtils');
 
@@ -110,4 +111,28 @@ const createAdmin = async (req, res) =>{
     }
 }
 
-module.exports = { createUser, getUsers, getUserById, updateUser, deleteUser, createAdmin };
+const getChildrenByParentId = async (req, res) => {
+  try {
+    const { parentID } = req.params;
+
+    // Validate the ID
+    if (!mongoose.Types.ObjectId.isValid(parentID)) {
+      return res.status(400).json({ message: 'Invalid parent ID' });
+    }
+
+    // Find children (users with matching parentId)
+    const children = await User.find({ parent: parentID });
+    console.log('Children fetched:', children);
+
+    if (!children.length) {
+      return res.status(404).json({ message: 'No children found for the given parent ID' });
+    }
+
+    return res.status(200).json({ children });
+  } catch (error) {
+    console.error('Error fetching children:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+module.exports = { createUser, getUsers, getUserById, updateUser, deleteUser, createAdmin, getChildrenByParentId };
