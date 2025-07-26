@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const { required } = require('joi');
 
 const userSchema = new mongoose.Schema({
     firstName: { type: String},
@@ -18,6 +19,8 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    otp: { type: String, required: false },
+    otpVerified: { type: Boolean, default: false },
 }, { timestamps: true });
 
 // Pre-save hook to hash password before saving

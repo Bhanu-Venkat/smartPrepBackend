@@ -5,15 +5,20 @@ const sendEmail = require('../config/email');
 const bcrypt = require('bcrypt');
 
 const signin = async (req, res) => {
-    const { username, password } = req.body;
+    const { identifier, password } = req.body;
 
     try {
-        const user = await User.findOne({ username });
+        var user;
+        if(identifier && identifier.includes('@')) {
+            user = await User.findOne({ emailId: identifier });
+        } else {
+            user = await User.findOne({ username: identifier });
+        }
+        // user = await User.findOne({ username });
         console.log("the user data: ",user)
         if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
         const isMatch = await bcrypt.compare(password, user.password);
-        console.log("thr password match: ",isMatch)
         if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
         const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, {
@@ -28,48 +33,65 @@ const signin = async (req, res) => {
 
 const signup = async (req, res) => {
     const { parent, students } = req.body;
-
     try {
-        // Create Parent
-        const isParentExist = await checkUserExistance(parent.emailId);
+        // Check if parent email already exists
+        const existingParentByEmail = await User.findOne({ emailId: parent.emailId, role: 'Parent' }).select('username emailId');
+        if (existingParentByEmail) {
+            console.log('Existing parent found by email:', existingParentByEmail);
+            return res.status(409).json({ message: 'Email already exists', username: existingParentByEmail.username });
+        }
+        // Check if parent phone number already exists
+        const existingParentByPhone = await User.findOne({ phonenumber: parent.phonenumber, role: 'Parent' }).select('username phonenumber');
+        if (existingParentByPhone) {
+            console.log('Existing parent found by phone:', existingParentByPhone);
+            return res.status(409).json({ message: 'Phone number already exists', username: existingParentByPhone.username });
+        }
+        // Check if any student email already exists
         const isStudentsExists = await Promise.all(students.map(async (student) => {
             if(student.emailId){
-                return await checkUserExistance(student.emailId);
-            }else{
-                return false
-            }}));
-        if(isParentExist || isStudentsExists.includes(true)){
-            return res.status(400).json({ message: 'Parent or student already exists' });
+                const existingStudent = await User.findOne({ emailId: student.emailId });
+                return !!existingStudent;
+            } else {
+                return false;
+            }
+        }));
+        if (isStudentsExists.includes(true)) {
+            return res.status(400).json({ message: 'One or more student emails already exist' });
         }
         const parentUsername = await generateUniqueUsername(parent.firstName, parent.lastName, null);
         const parentPassword = generatePassword();
         const hashedParentPassword = await hashPassword(parentPassword);
+
+        // Generate OTP for parent verification
+        const parentOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
         const parentUser = await User.create({
             ...parent,
             username: parentUsername,
             password: hashedParentPassword,
             role: 'Parent',
+            otp: parentOtp,
+            otpVerified: false
         });
 
         // Create Students
         const studentUsers = [];
         const mailContent = [];
         for (const student of students) {
-            const studentUsername = await generateUniqueUsername(student.firstName, student.lastName, student.dateOfBirth);
-            const studentPassword = generatePassword();
-            const hashedStudentPassword = await hashPassword(studentPassword);
+                const studentUsername = await generateUniqueUsername(student.firstName, student.lastName, student.dateOfBirth);
+                const studentPassword = generatePassword();
+                const hashedStudentPassword = await hashPassword(studentPassword);
             
-            const studentUser = await User.create({
-                ...student,
-                username: studentUsername,
-                password: hashedStudentPassword,
-                role: 'Student',
-                parent: parentUser._id, // Link parent to student
-            });
+                const studentUser = await User.create({
+                    ...student,
+                    username: studentUsername,
+                    password: hashedStudentPassword,
+                    role: 'Student',
+                    parent: parentUser._id, // Link parent to student
+                });
 
-            studentUsers.push(studentUser);
-            mailContent.push({ name: student.firstName, username: studentUsername, password: studentPassword });
+                studentUsers.push(studentUser);
+                mailContent.push({ name: student.firstName, username: studentUsername, password: studentPassword });
 
             // Send email to student
             student.emailId && await sendEmail(student.emailId, '<p>Welcome to EduTech', `Hello ${student.firstName}, your username is ${studentUsername} and your password is ${studentPassword}</p>`);
@@ -79,14 +101,33 @@ const signup = async (req, res) => {
          var studentMailBody = mailContent.map((student) => `<p>your kids username and password details:  ${student.name}'s username is ${student.username} and your password is ${student.password}</p>`).join('\n');
 
         // Send email to parent
-        await sendEmail(parent.emailId, 'Welcome to EduTech' , `<p>${parentMailBody} ${studentMailBody}</p>`);
+            await sendEmail(parent.emailId, 'Welcome to EduTech' , `<p>${parentMailBody} ${studentMailBody}</p>`);
 
         res.status(201).json({ message: 'Users created successfully', parent: parentUser, students: studentUsers });
     } catch (error) {
         console.log("the erorr: ",error)
         res.status(500).json({ message: 'Error creating users', error: error.message });
     }
+}
+
+
+// Parent OTP verification API (ensure this is at top-level, not inside signup)
+const verifyParentOtp = async (req, res) => {
+    const { emailId, otp } = req.body;
+    const user = await User.findOne({ emailId, role: 'Parent' });
+    if (!user) {
+        return res.status(404).json({ message: 'Parent not found' });
+    }
+    if (user.otp !== otp) {
+        return res.status(400).json({ message: 'Invalid OTP' });
+    }
+    user.otpVerified = true;
+    user.otp = undefined;
+    await user.save();
+    return res.status(200).json({ message: 'OTP verified successfully' });
 };
+
+
 
 const checkUserExistance = async (emailId) => {
     const user = await User.findOne({ emailId });
@@ -171,4 +212,5 @@ module.exports = { signin,
     signup,
     forgotPassword,
     resetPassword,
+    verifyParentOtp
  };

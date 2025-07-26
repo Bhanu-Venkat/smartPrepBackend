@@ -7,6 +7,7 @@ const bypassRoutes = [
     '/api/dashboard/public',  // Example anonymous dashboard API
     '/api/auth/forgot/password',  // Anonymous route for forgot password
     '/api/auth/reset',      // Anonymous route for reset password
+    '/api/auth/verify-otp'
 ];
 
 const verify = (req, res, next) => {
